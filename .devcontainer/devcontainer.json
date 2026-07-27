@@ -2,7 +2,14 @@
   "name": "WithChurch",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20",
   "postCreateCommand": "npm install",
+  "postStartCommand": "sh -c 'nohup npm run dev > /tmp/dev-server.log 2>&1 &'",
   "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "Next.js dev server",
+      "onAutoForward": "openPreview"
+    }
+  },
   "customizations": {
     "vscode": {
       "extensions": ["dbaeumer.vscode-eslint", "bradlc.vscode-tailwindcss"]
