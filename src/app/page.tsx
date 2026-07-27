@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function Home() {
@@ -10,6 +11,14 @@ export default async function Home() {
       <p className="text-sm text-gray-500">
         Supabase connection: {error ? `error - ${error.message}` : "ok"}
       </p>
+      <div className="flex gap-4">
+        <Link href="/login" className="text-sm text-blue-600 hover:underline">
+          로그인
+        </Link>
+        <Link href="/signup" className="text-sm text-blue-600 hover:underline">
+          회원가입
+        </Link>
+      </div>
     </main>
   );
 }
