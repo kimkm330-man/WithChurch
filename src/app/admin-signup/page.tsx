@@ -4,27 +4,25 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ChurchCombobox } from "@/components/ChurchCombobox";
-import type { Church } from "@/types/db";
 import { EMAIL_REGEX, MIN_PASSWORD_LENGTH } from "@/lib/validation";
 
-export default function SignupPage() {
+export default function AdminSignupPage() {
   const router = useRouter();
+  const [churchName, setChurchName] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [church, setChurch] = useState<Church | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   function validate(): string | null {
-    if (!name.trim()) return "이름을 입력해주세요.";
+    if (!churchName.trim()) return "교회 이름을 입력해주세요.";
+    if (!name.trim()) return "담당자 이름을 입력해주세요.";
     if (!phone.trim()) return "전화번호를 입력해주세요.";
     if (!EMAIL_REGEX.test(email)) return "올바른 이메일 형식이 아닙니다.";
     if (password.length < MIN_PASSWORD_LENGTH)
       return `비밀번호는 최소 ${MIN_PASSWORD_LENGTH}자 이상이어야 합니다.`;
-    if (!church) return "교회를 선택해주세요.";
     return null;
   }
 
@@ -52,41 +50,51 @@ export default function SignupPage() {
       return;
     }
 
-    const userId = signUpData.user?.id;
-    if (!userId) {
+    if (!signUpData.user) {
       setError("가입 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.");
       setIsSubmitting(false);
       return;
     }
 
-    const { error: profileError } = await supabase.from("profiles").insert({
-      id: userId,
-      church_id: church!.id,
-      name,
-      phone,
-      base_role: "user",
-      status: "pending",
+    const { error: rpcError } = await supabase.rpc("apply_church_registration", {
+      p_church_name: churchName,
+      p_name: name,
+      p_phone: phone,
     });
 
     setIsSubmitting(false);
 
-    if (profileError) {
-      setError(profileError.message);
+    if (rpcError) {
+      setError(rpcError.message);
       return;
     }
 
-    router.push("/pending-approval");
+    router.push("/admin-pending-approval");
   }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12">
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-gray-900">회원가입</h1>
+        <h1 className="text-2xl font-bold text-gray-900">교회 관리자 등록 신청</h1>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
+            <label htmlFor="churchName" className="block text-sm font-medium text-gray-700">
+              교회 이름
+            </label>
+            <input
+              id="churchName"
+              type="text"
+              required
+              value={churchName}
+              onChange={(event) => setChurchName(event.target.value)}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-              이름
+              담당자 이름
             </label>
             <input
               id="name"
@@ -142,8 +150,6 @@ export default function SignupPage() {
             />
           </div>
 
-          <ChurchCombobox value={church} onChange={setChurch} />
-
           {error && <p className="text-sm text-red-600">{error}</p>}
 
           <button
@@ -151,7 +157,7 @@ export default function SignupPage() {
             disabled={isSubmitting}
             className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {isSubmitting ? "가입 처리 중..." : "가입하기"}
+            {isSubmitting ? "신청 처리 중..." : "등록 신청하기"}
           </button>
         </form>
 
