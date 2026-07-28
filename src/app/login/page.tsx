@@ -102,6 +102,12 @@ export default function LoginPage() {
             회원가입
           </Link>
         </p>
+        <p className="mt-2 text-center text-sm text-gray-500">
+          교회 관리자이신가요?{" "}
+          <Link href="/admin-signup" className="text-blue-600 hover:underline">
+            교회 관리자 등록 신청
+          </Link>
+        </p>
       </div>
     </main>
   );
